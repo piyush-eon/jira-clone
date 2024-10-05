@@ -18,7 +18,7 @@ export default function RootLayout({ children }) {
       appearance={{
         baseTheme: shadesOfPurple,
         variables: {
-          colorPrimary: "#8B5CF6",
+          colorPrimary: "#3b82f6",
           colorBackground: "#1a202c",
           colorInputBackground: "#2D3748",
           colorInputText: "#F3F4F6",
@@ -26,7 +26,7 @@ export default function RootLayout({ children }) {
         elements: {
           formButtonPrimary: "bg-purple-600 hover:bg-purple-700 text-white",
           card: "bg-gray-800",
-          headerTitle: "text-purple-300",
+          headerTitle: "text-blue-400",
           headerSubtitle: "text-gray-400",
         },
       }}
