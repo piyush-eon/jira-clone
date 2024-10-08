@@ -5,22 +5,26 @@ import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import UserMenu from "./user-menu";
 import { PenBox } from "lucide-react";
 import Image from "next/image";
+import OrgSwitcher from "./org-switcher";
+import { checkUser } from "@/lib/checkUser";
 
-const Header = () => {
+async function Header() {
+  await checkUser();
+
   return (
-    <header className="container mx-auto py-6 flex justify-between items-center px-4">
-      <Link href="/">
-        <h1 className="text-2xl font-bold">
-          <Image
-            src={"/logo2.png"}
-            alt="Zscrum Logo"
-            width={200}
-            height={56}
-            className="h-10 w-auto object-contain"
-          />
-        </h1>
-      </Link>
-      <nav>
+    <header className="container mx-auto px-4">
+      <nav className="py-6 flex justify-between items-center">
+        <Link href="/">
+          <h1 className="text-2xl font-bold">
+            <Image
+              src={"/logo2.png"}
+              alt="Zscrum Logo"
+              width={200}
+              height={56}
+              className="h-10 w-auto object-contain"
+            />
+          </h1>
+        </Link>
         <div className="flex items-center gap-4">
           <Link href="/events?create=true">
             <Button variant="default" className="flex items-center gap-2">
@@ -38,8 +42,10 @@ const Header = () => {
           </SignedIn>
         </div>
       </nav>
+
+      <OrgSwitcher />
     </header>
   );
-};
+}
 
 export default Header;
