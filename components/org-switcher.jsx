@@ -7,7 +7,6 @@ import {
   useOrganization,
   useUser,
 } from "@clerk/nextjs";
-import { BarLoader } from "react-spinners";
 
 const OrgSwitcher = () => {
   const { isLoaded } = useOrganization();
@@ -19,17 +18,19 @@ const OrgSwitcher = () => {
   }
 
   if (!isLoaded || !isUserLoaded) {
-    return <BarLoader className="mb-4" width={"100%"} color="#36d7b7" />;
+    return null;
   }
 
   return (
-    <div className="flex justify-end">
+    <div className="flex justify-end mt-1">
       <SignedIn>
         <OrganizationSwitcher
           hidePersonal
           createOrganizationMode={
             pathname === "/onboarding" ? "navigation" : "modal"
           }
+          afterCreateOrganizationUrl="/organization/:slug"
+          afterSelectOrganizationUrl="/organization/:slug"
           createOrganizationUrl="/onboarding"
           appearance={{
             elements: {

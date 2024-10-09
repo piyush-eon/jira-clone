@@ -1,6 +1,6 @@
 "use client";
 
-import { CreateOrganization, useOrganization } from "@clerk/nextjs";
+import { OrganizationList, useOrganization } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -10,14 +10,18 @@ export default function Onboarding() {
 
   useEffect(() => {
     if (organization) {
-      router.push(`/organization/${organization.id}`);
+      router.push(`/organization/${organization.slug}`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [organization]);
 
   return (
-    <div className="flex justify-center items-center pt-20">
-      <CreateOrganization afterCreateOrganizationUrl="/organization/:id" />
+    <div className="flex justify-center items-center pt-14">
+      <OrganizationList
+        hidePersonal
+        afterCreateOrganizationUrl="/organization/:slug"
+        afterSelectOrganizationUrl="/organization/:slug"
+      />
     </div>
   );
 }
