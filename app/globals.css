@@ -77,14 +77,14 @@ body {
   }
 }
 
-@keyframes moveDots {
+/* @keyframes moveDots {
   0% {
     background-position: 0 0;
   }
   100% {
     background-position: 80px 80px;
   }
-}
+} */
 
 .animated-dotted-background {
   background-color: #0a111f;
@@ -95,6 +95,6 @@ body {
 
 @layer utilities {
   .gradient-title {
-    @apply font-extrabold bg-gradient-to-br from-blue-500 via-blue-100 to-blue-400 bg-clip-text tracking-tighter text-transparent pb-4 pr-2;
+    @apply font-extrabold bg-gradient-to-br from-blue-500 via-blue-100 to-blue-400 bg-clip-text tracking-tighter text-transparent pr-2;
   }
 }

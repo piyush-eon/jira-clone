@@ -15,7 +15,7 @@ export default async function UserIssues({ userId }) {
         <div key={issue.id} className="border p-4 rounded-lg">
           <h3 className="font-semibold mb-2">
             <Link
-              href={`/projects/${issue.projectId}/issues/${issue.id}`}
+              href={`/project/${issue.projectId}/issues/${issue.id}`}
               className="text-blue-500 hover:underline"
             >
               {issue.title}

@@ -15,9 +15,9 @@ export default async function OrganizationPage({ params }) {
 
   const organization = await getOrganization(orgId);
 
-  // if (!organization) {
-  //   return <div>Organization not found</div>;
-  // }
+  if (!organization) {
+    return <div>Organization not found</div>;
+  }
 
   return (
     <div className="container mx-auto">
@@ -29,7 +29,7 @@ export default async function OrganizationPage({ params }) {
         <OrgSwitcher />
       </div>
       <div className="mb-4">
-        <ProjectList orgId={orgId} />
+        <ProjectList orgId={organization.id} />
       </div>
       <div className="mt-4">
         <UserIssues userId={userId} />

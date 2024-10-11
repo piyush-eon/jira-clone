@@ -20,7 +20,7 @@ export default async function ProjectList({ orgId }) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {projects.map((project) => (
         <Card key={project.id}>
           <CardHeader>
@@ -29,7 +29,7 @@ export default async function ProjectList({ orgId }) {
           <CardContent>
             <p className="text-sm text-gray-500 mb-4">{project.description}</p>
             <Link
-              href={`/projects/${project.id}`}
+              href={`/project/${project.id}`}
               className="text-blue-500 hover:underline"
             >
               View Project
