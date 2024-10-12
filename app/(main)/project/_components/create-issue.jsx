@@ -104,6 +104,7 @@ export default function IssueCreationDrawer({
               </p>
             )}
           </div>
+
           <div>
             <label
               htmlFor="assigneeId"
@@ -138,6 +139,7 @@ export default function IssueCreationDrawer({
               </p>
             )}
           </div>
+
           <div>
             <label
               htmlFor="description"
@@ -153,6 +155,7 @@ export default function IssueCreationDrawer({
               )}
             />
           </div>
+
           <div>
             <label
               htmlFor="priority"

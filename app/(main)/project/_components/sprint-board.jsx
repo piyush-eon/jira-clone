@@ -3,19 +3,14 @@
 import { useState, useEffect } from "react";
 import useFetch from "@/hooks/use-fetch";
 import { getIssuesForSprint, updateIssueOrder } from "@/actions/issues";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BarLoader } from "react-spinners";
 import IssueCreationDrawer from "./create-issue";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
+import IssueCard from "@/components/issue-card";
+import SprintStatusManager from "./sprint-manager";
+import { toast } from "sonner";
 
 const columns = [
   {
@@ -45,7 +40,10 @@ function reorder(list, startIndex, endIndex) {
 }
 
 export default function SprintBoard({ sprints, projectId, orgId }) {
-  const [currentSprintId, setCurrentSprintId] = useState(sprints[0].id);
+  const [currentSprint, setCurrentSprint] = useState(
+    sprints.find((spr) => spr.status === "ACTIVE") || sprints[0]
+  );
+
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState(null);
 
@@ -58,11 +56,11 @@ export default function SprintBoard({ sprints, projectId, orgId }) {
   } = useFetch(getIssuesForSprint);
 
   useEffect(() => {
-    if (currentSprintId) {
-      fetchIssues(currentSprintId);
+    if (currentSprint.id) {
+      fetchIssues(currentSprint.id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentSprintId]);
+  }, [currentSprint.id]);
 
   const handleAddIssue = (status) => {
     setSelectedStatus(status);
@@ -70,7 +68,7 @@ export default function SprintBoard({ sprints, projectId, orgId }) {
   };
 
   const handleIssueCreated = () => {
-    fetchIssues(currentSprintId);
+    fetchIssues(currentSprint.id);
   };
 
   const {
@@ -80,6 +78,14 @@ export default function SprintBoard({ sprints, projectId, orgId }) {
   } = useFetch(updateIssueOrder);
 
   const onDragEnd = async (result) => {
+    if (currentSprint.status === "PLANNED") {
+      toast.warning("Start the sprint to update board");
+      return;
+    }
+    if (currentSprint.status === "COMPLETED") {
+      toast.warning("Cannot update board after sprint end");
+      return;
+    }
     const { destination, source } = result;
 
     if (!destination) {
@@ -114,8 +120,6 @@ export default function SprintBoard({ sprints, projectId, orgId }) {
       reorderedCards.forEach((card, i) => {
         card.order = i;
       });
-
-      // API Call
     } else {
       // remove card from the source list
       const [movedCard] = sourceList.splice(source.index, 1);
@@ -134,43 +138,28 @@ export default function SprintBoard({ sprints, projectId, orgId }) {
       destinationList.forEach((card, i) => {
         card.order = i;
       });
-
-      // API Call
     }
 
     const sortedIssues = newOrderedData.sort((a, b) => a.order - b.order);
-    console.log(sortedIssues, newOrderedData);
-
     setIssues(newOrderedData, sortedIssues);
 
-    updateIssueOrderFn(projectId, sortedIssues);
+    updateIssueOrderFn(sortedIssues);
   };
 
-  if (issuesLoading)
-    return <BarLoader className="mb-4" width={"100%"} color="#36d7b7" />;
   if (issuesError) return <div>Error loading issues</div>;
 
   return (
     <div className="flex flex-col">
-      <Select
-        value={currentSprintId}
-        onValueChange={(value) => setCurrentSprintId(value)}
-      >
-        <SelectTrigger className="bg-slate-950 w-72">
-          <SelectValue placeholder="Select Sprint" />
-        </SelectTrigger>
-        <SelectContent>
-          {sprints.map((sprint) => (
-            <SelectItem key={sprint.id} value={sprint.id}>
-              {sprint.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <SprintStatusManager
+        sprint={currentSprint}
+        setSprint={setCurrentSprint}
+        sprints={sprints}
+      />
+
       {updateIssuesError && (
         <p className="text-red-500 mt-2">{updateIssuesError.message}</p>
       )}
-      {updateIssuesLoading && (
+      {(updateIssuesLoading || issuesLoading) && (
         <BarLoader className="mt-4" width={"100%"} color="#36d7b7" />
       )}
       <DragDropContext onDragEnd={onDragEnd}>
@@ -193,34 +182,34 @@ export default function SprintBoard({ sprints, projectId, orgId }) {
                         key={issue.id}
                         draggableId={issue.id}
                         index={index}
+                        isDragDisabled={updateIssuesLoading}
                       >
                         {(provided) => (
-                          <Card
+                          <div
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
                           >
-                            <CardContent className="p-2">
-                              <h4 className="font-medium">{issue.title}</h4>
-                              <p className="text-sm text-gray-500">
-                                {issue.assignee?.name || "Unassigned"}
-                              </p>
-                            </CardContent>
-                          </Card>
+                            <IssueCard
+                              issue={issue}
+                              onDelete={() => fetchIssues(currentSprint.id)}
+                            />
+                          </div>
                         )}
                       </Draggable>
                     ))}
                   {provided.placeholder}
-                  {column.key === "TODO" && (
-                    <Button
-                      variant="ghost"
-                      className="w-full"
-                      onClick={() => handleAddIssue(column.key)}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Create Issue
-                    </Button>
-                  )}
+                  {column.key === "TODO" &&
+                    currentSprint.status !== "COMPLETED" && (
+                      <Button
+                        variant="ghost"
+                        className="w-full"
+                        onClick={() => handleAddIssue(column.key)}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create Issue
+                      </Button>
+                    )}
                 </div>
               )}
             </Droppable>
@@ -230,7 +219,7 @@ export default function SprintBoard({ sprints, projectId, orgId }) {
       <IssueCreationDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
-        sprintId={currentSprintId}
+        sprintId={currentSprint.id}
         status={selectedStatus}
         projectId={projectId}
         onIssueCreated={handleIssueCreated}
