@@ -12,6 +12,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import IssueDetailsDialog from "./issue-details-dialog";
 import UserAvatar from "./user-avatar";
+import { useRouter } from "next/navigation";
 
 const priorityColor = {
   LOW: "border-green-600",
@@ -20,8 +21,24 @@ const priorityColor = {
   URGENT: "border-red-400",
 };
 
-export default function IssueCard({ issue, showStatus = false, onDelete }) {
+export default function IssueCard({
+  issue,
+  showStatus = false,
+  onDelete = () => {},
+  onUpdate = () => {},
+}) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const router = useRouter();
+
+  const onDeleteHandler = (...params) => {
+    router.refresh();
+    onDelete(...params);
+  };
+
+  const onUpdateHandler = (...params) => {
+    router.refresh();
+    onUpdate(...params);
+  };
 
   const created = formatDistanceToNow(new Date(issue.createdAt), {
     addSuffix: true,
@@ -57,7 +74,9 @@ export default function IssueCard({ issue, showStatus = false, onDelete }) {
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
           issue={issue}
-          onDelete={onDelete}
+          onDelete={onDeleteHandler}
+          onUpdate={onUpdateHandler}
+          borderCol={priorityColor[issue.priority]}
         />
       )}
     </>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,25 +8,39 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import MDEditor from "@uiw/react-md-editor";
 import UserAvatar from "./user-avatar";
 import useFetch from "@/hooks/use-fetch";
-import { deleteIssue } from "@/actions/issues";
-import { useRouter } from "next/navigation";
+import { deleteIssue, updateIssue } from "@/actions/issues";
 import { useOrganization, useUser } from "@clerk/nextjs";
-import { useEffect } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { BarLoader } from "react-spinners";
+import statuses from "@/data/status";
+import { ExternalLink } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+
+const priorityOptions = ["LOW", "MEDIUM", "HIGH", "URGENT"];
 
 export default function IssueDetailsDialog({
   isOpen,
   onClose,
   issue,
-  onDelete = () => window.location.reload(),
+  onDelete = () => {},
+  onUpdate = () => {},
+  borderCol = "",
 }) {
-  const {
-    user: { id: userId },
-  } = useUser();
+  const [status, setStatus] = useState(issue.status);
+  const [priority, setPriority] = useState(issue.priority);
+  const { user } = useUser();
   const { membership } = useOrganization();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const {
     loading: deleteLoading,
@@ -34,10 +49,27 @@ export default function IssueDetailsDialog({
     data: deleted,
   } = useFetch(deleteIssue);
 
+  const {
+    loading: updateLoading,
+    error: updateError,
+    fn: updateIssueFn,
+    data: updated,
+  } = useFetch(updateIssue);
+
   const handleDelete = async () => {
     if (window.confirm("Are you sure you want to delete this issue?")) {
       deleteIssueFn(issue.id);
     }
+  };
+
+  const handleStatusChange = async (newStatus) => {
+    setStatus(newStatus);
+    updateIssueFn(issue.id, { status: newStatus, priority });
+  };
+
+  const handlePriorityChange = async (newPriority) => {
+    setPriority(newPriority);
+    updateIssueFn(issue.id, { status, priority: newPriority });
   };
 
   useEffect(() => {
@@ -45,28 +77,77 @@ export default function IssueDetailsDialog({
       onClose();
       onDelete();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deleted, deleteLoading]);
+    if (updated) {
+      onUpdate(updated);
+    }
+  }, [deleted, updated, deleteLoading, updateLoading]);
 
-  const canDelete =
-    userId === issue.reporter.clerkUserId || membership.role === "org:admin";
+  const canChange =
+    user.id === issue.reporter.clerkUserId || membership.role === "org:admin";
+
+  const handleGoToProject = () => {
+    router.push(`/project/${issue.projectId}?sprint=${issue.sprintId}`);
+  };
+
+  const isProjectPage = !pathname.startsWith("/project/");
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{issue.title}</DialogTitle>
+          <div className="flex justify-between items-center">
+            <DialogTitle className="text-3xl">{issue.title}</DialogTitle>
+            {isProjectPage && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleGoToProject}
+                title="Go to Project"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </DialogHeader>
+        {(updateLoading || deleteLoading) && (
+          <BarLoader width={"100%"} color="#36d7b7" />
+        )}
         <div className="space-y-4">
           <div className="flex items-center space-x-2">
-            <Badge>{issue.status}</Badge>
-            <Badge variant="outline">{issue.priority}</Badge>
+            <Select value={status} onValueChange={handleStatusChange}>
+              <SelectTrigger className="">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                {statuses.map((option) => (
+                  <SelectItem key={option.key} value={option.key}>
+                    {option.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={priority}
+              onValueChange={handlePriorityChange}
+              disabled={!canChange}
+            >
+              <SelectTrigger className={`border ${borderCol} rounded`}>
+                <SelectValue placeholder="Priority" />
+              </SelectTrigger>
+              <SelectContent>
+                {priorityOptions.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <h4 className="font-semibold">Description</h4>
             <MDEditor.Markdown
               className="rounded px-2 py-1"
-              source={issue.description}
+              source={issue.description ? issue.description : "--"}
             />
           </div>
           <div className="flex justify-between">
@@ -79,7 +160,7 @@ export default function IssueDetailsDialog({
               <UserAvatar user={issue.reporter} />
             </div>
           </div>
-          {canDelete && (
+          {canChange && (
             <Button
               onClick={handleDelete}
               disabled={deleteLoading}
@@ -88,7 +169,11 @@ export default function IssueDetailsDialog({
               {deleteLoading ? "Deleting..." : "Delete Issue"}
             </Button>
           )}
-          {deleteError && <p className="text-red-500">{deleteError.message}</p>}
+          {(deleteError || updateError) && (
+            <p className="text-red-500">
+              {deleteError?.message || updateError?.message}
+            </p>
+          )}
         </div>
       </DialogContent>
     </Dialog>

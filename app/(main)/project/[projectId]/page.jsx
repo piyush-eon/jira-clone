@@ -21,11 +21,15 @@ export default async function ProjectPage({ params }) {
         sprintKey={project.sprints?.length + 1}
       />
 
-      <SprintBoard
-        sprints={project.sprints}
-        projectId={projectId}
-        orgId={project.organizationId}
-      />
+      {project.sprints.length > 0 ? (
+        <SprintBoard
+          sprints={project.sprints}
+          projectId={projectId}
+          orgId={project.organizationId}
+        />
+      ) : (
+        <div>Create a Sprint from button above</div>
+      )}
     </div>
   );
 }

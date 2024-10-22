@@ -1,6 +1,8 @@
+// components/ProjectList.jsx
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { getProjects } from "@/actions/organizations";
+import DeleteProject from "./delete-project";
 
 export default async function ProjectList({ orgId }) {
   const projects = await getProjects(orgId);
@@ -24,7 +26,10 @@ export default async function ProjectList({ orgId }) {
       {projects.map((project) => (
         <Card key={project.id}>
           <CardHeader>
-            <CardTitle>{project.name}</CardTitle>
+            <CardTitle className="flex justify-between items-center">
+              {project.name}
+              <DeleteProject projectId={project.id} />
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-500 mb-4">{project.description}</p>

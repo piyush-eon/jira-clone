@@ -14,9 +14,17 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { BarLoader } from "react-spinners";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function SprintStatusManager({ sprint, setSprint, sprints }) {
+export default function SprintManager({
+  sprint,
+  setSprint,
+  sprints,
+  projectId,
+}) {
   const [status, setStatus] = useState(sprint.status);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const {
     fn: updateStatus,
@@ -61,21 +69,28 @@ export default function SprintStatusManager({ sprint, setSprint, sprints }) {
     return null;
   };
 
-  const statusText = getStatusText();
+  useEffect(() => {
+    const sprintId = searchParams.get("sprint");
+    if (sprintId && sprintId !== sprint.id) {
+      const selectedSprint = sprints.find((s) => s.id === sprintId);
+      if (selectedSprint) {
+        setSprint(selectedSprint);
+        setStatus(selectedSprint.status);
+      }
+    }
+  }, [searchParams, sprints]);
 
-  console.log(error);
+  const handleSprintChange = (value) => {
+    const selectedSprint = sprints.find((s) => s.id === value);
+    setSprint(selectedSprint);
+    setStatus(selectedSprint.status);
+    router.replace(`/project/${projectId}`, undefined, { shallow: true });
+  };
 
   return (
     <>
       <div className="flex justify-between items-center gap-4">
-        <Select
-          value={sprint.id}
-          onValueChange={(value) => {
-            const currSprint = sprints.find((s) => s.id === value);
-            setSprint(currSprint);
-            setStatus(currSprint.status);
-          }}
-        >
+        <Select value={sprint.id} onValueChange={handleSprintChange}>
           <SelectTrigger className="bg-slate-950 self-start">
             <SelectValue placeholder="Select Sprint" />
           </SelectTrigger>
@@ -109,9 +124,9 @@ export default function SprintStatusManager({ sprint, setSprint, sprints }) {
         )}
       </div>
       {loading && <BarLoader width={"100%"} className="mt-2" color="#36d7b7" />}
-      {statusText && (
+      {getStatusText() && (
         <Badge variant="" className="mt-3 ml-1 self-start">
-          {statusText}
+          {getStatusText()}
         </Badge>
       )}
     </>

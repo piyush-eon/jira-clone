@@ -1,4 +1,3 @@
-// app/components/UserIssues.jsx
 import { Suspense } from "react";
 import { getUserIssues } from "@/actions/organizations";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

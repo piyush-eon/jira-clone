@@ -9,27 +9,10 @@ import { BarLoader } from "react-spinners";
 import IssueCreationDrawer from "./create-issue";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import IssueCard from "@/components/issue-card";
-import SprintStatusManager from "./sprint-manager";
+import SprintManager from "./sprint-manager";
 import { toast } from "sonner";
-
-const columns = [
-  {
-    name: "Todo",
-    key: "TODO",
-  },
-  {
-    name: "In Progress",
-    key: "IN_PROGRESS",
-  },
-  {
-    name: "In Review",
-    key: "IN_REVIEW",
-  },
-  {
-    name: "Done",
-    key: "DONE",
-  },
-];
+import BoardFilters from "./board-filters";
+import statuses from "@/data/status";
 
 function reorder(list, startIndex, endIndex) {
   const result = Array.from(list);
@@ -54,6 +37,12 @@ export default function SprintBoard({ sprints, projectId, orgId }) {
     data: issues,
     setData: setIssues,
   } = useFetch(getIssuesForSprint);
+
+  const [filteredIssues, setFilteredIssues] = useState(issues);
+
+  const handleFilterChange = (newFilteredIssues) => {
+    setFilteredIssues(newFilteredIssues);
+  };
 
   useEffect(() => {
     if (currentSprint.id) {
@@ -150,11 +139,16 @@ export default function SprintBoard({ sprints, projectId, orgId }) {
 
   return (
     <div className="flex flex-col">
-      <SprintStatusManager
+      <SprintManager
         sprint={currentSprint}
         setSprint={setCurrentSprint}
         sprints={sprints}
+        projectId={projectId}
       />
+
+      {issues && !issuesLoading && (
+        <BoardFilters issues={issues} onFilterChange={handleFilterChange} />
+      )}
 
       {updateIssuesError && (
         <p className="text-red-500 mt-2">{updateIssuesError.message}</p>
@@ -162,9 +156,10 @@ export default function SprintBoard({ sprints, projectId, orgId }) {
       {(updateIssuesLoading || issuesLoading) && (
         <BarLoader className="mt-4" width={"100%"} color="#36d7b7" />
       )}
+
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="grid grid-cols-4 gap-4 mt-4 bg-slate-900 p-4 rounded-lg">
-          {columns.map((column) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 bg-slate-900 p-4 rounded-lg">
+          {statuses.map((column) => (
             <Droppable key={column.key} droppableId={column.key}>
               {(provided) => (
                 <div
@@ -175,7 +170,7 @@ export default function SprintBoard({ sprints, projectId, orgId }) {
                   <h3 className="font-semibold mb-2 text-center">
                     {column.name}
                   </h3>
-                  {issues
+                  {filteredIssues
                     ?.filter((issue) => issue.status === column.key)
                     .map((issue, index) => (
                       <Draggable
@@ -193,6 +188,14 @@ export default function SprintBoard({ sprints, projectId, orgId }) {
                             <IssueCard
                               issue={issue}
                               onDelete={() => fetchIssues(currentSprint.id)}
+                              onUpdate={(updated) =>
+                                setIssues((issues) =>
+                                  issues.map((issue) => {
+                                    if (issue.id === updated.id) return updated;
+                                    return issue;
+                                  })
+                                )
+                              }
                             />
                           </div>
                         )}
@@ -216,6 +219,7 @@ export default function SprintBoard({ sprints, projectId, orgId }) {
           ))}
         </div>
       </DragDropContext>
+
       <IssueCreationDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}

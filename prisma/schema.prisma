@@ -35,11 +35,11 @@ model Project {
 
 model Sprint {
   id        String   @id @default(cuid())
-  name      String
+  name      String   @unique
   startDate DateTime
   endDate   DateTime
   status    SprintStatus @default(PLANNED)
-  project   Project  @relation(fields: [projectId], references: [id])
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId String
   issues    Issue[]
   createdAt DateTime @default(now())
@@ -57,9 +57,9 @@ model Issue {
   assigneeId  String?
   reporter    User       @relation("Reporter", fields: [reporterId], references: [id])
   reporterId  String
-  project     Project    @relation(fields: [projectId], references: [id])
+  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId   String
-  sprint      Sprint?    @relation(fields: [sprintId], references: [id])
+  sprint      Sprint?    @relation(fields: [sprintId], references: [id], onDelete: SetNull)
   sprintId    String?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt

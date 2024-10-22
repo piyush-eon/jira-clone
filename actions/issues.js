@@ -80,17 +80,6 @@ export async function updateIssueOrder(updatedIssues) {
     }
   });
 
-  // Fetch and return the updated issues
-  // const updatedIssuesList = await db.issue.findMany({
-  //   where: { projectId: projectId },
-  //   orderBy: [{ status: "asc" }, { order: "asc" }],
-  //   include: {
-  //     assignee: true,
-  //     reporter: true,
-  //   },
-  // });
-
-  // return updatedIssuesList;
   return { success: true };
 }
 
@@ -128,4 +117,43 @@ export async function deleteIssue(issueId) {
   await db.issue.delete({ where: { id: issueId } });
 
   return { success: true };
+}
+
+export async function updateIssue(issueId, data) {
+  const { userId, orgId } = auth();
+
+  if (!userId || !orgId) {
+    throw new Error("Unauthorized");
+  }
+
+  try {
+    const issue = await db.issue.findUnique({
+      where: { id: issueId },
+      include: { project: true },
+    });
+
+    if (!issue) {
+      throw new Error("Issue not found");
+    }
+
+    if (issue.project.organizationId !== orgId) {
+      throw new Error("Unauthorized");
+    }
+
+    const updatedIssue = await db.issue.update({
+      where: { id: issueId },
+      data: {
+        status: data.status,
+        priority: data.priority,
+      },
+      include: {
+        assignee: true,
+        reporter: true,
+      },
+    });
+
+    return updatedIssue;
+  } catch (error) {
+    throw new Error("Error updating issue: " + error.message);
+  }
 }
