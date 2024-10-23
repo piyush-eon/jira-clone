@@ -51,8 +51,10 @@ export async function getProjects(orgId) {
 }
 
 export async function getUserIssues(userId) {
-  if (!userId) {
-    throw new Error("No user id found");
+  const { orgId } = auth();
+
+  if (!userId || !orgId) {
+    throw new Error("No user id or organization id found");
   }
 
   const user = await db.user.findUnique({
@@ -66,6 +68,9 @@ export async function getUserIssues(userId) {
   const issues = await db.issue.findMany({
     where: {
       OR: [{ assigneeId: user.id }, { reporterId: user.id }],
+      project: {
+        organizationId: orgId,
+      },
     },
     include: {
       project: true,
