@@ -1,18 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import useFetch from "@/hooks/use-fetch";
-import { getIssuesForSprint, updateIssueOrder } from "@/actions/issues";
+import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BarLoader } from "react-spinners";
-import IssueCreationDrawer from "./create-issue";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
-import IssueCard from "@/components/issue-card";
-import SprintManager from "./sprint-manager";
-import { toast } from "sonner";
-import BoardFilters from "./board-filters";
+import useFetch from "@/hooks/use-fetch";
+
 import statuses from "@/data/status";
+import { getIssuesForSprint, updateIssueOrder } from "@/actions/issues";
+
+import SprintManager from "./sprint-manager";
+import IssueCreationDrawer from "./create-issue";
+import IssueCard from "@/components/issue-card";
+import BoardFilters from "./board-filters";
 
 function reorder(list, startIndex, endIndex) {
   const result = Array.from(list);

@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { formatDistanceToNow, isAfter, isBefore, format } from "date-fns";
-import useFetch from "@/hooks/use-fetch";
-import { updateSprintStatus } from "@/actions/sprints";
 import {
   Select,
   SelectContent,
@@ -13,8 +10,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+
 import { BarLoader } from "react-spinners";
+import { formatDistanceToNow, isAfter, isBefore, format } from "date-fns";
+
+import useFetch from "@/hooks/use-fetch";
 import { useRouter, useSearchParams } from "next/navigation";
+
+import { updateSprintStatus } from "@/actions/sprints";
 
 export default function SprintManager({
   sprint,

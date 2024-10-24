@@ -51,6 +51,16 @@ export async function getProject(projectId) {
     throw new Error("Unauthorized");
   }
 
+  // Find user to verify existence
+  const user = await db.user.findUnique({
+    where: { clerkUserId: userId },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  // Get project with sprints and organization
   const project = await db.project.findUnique({
     where: { id: projectId },
     include: {
@@ -60,8 +70,13 @@ export async function getProject(projectId) {
     },
   });
 
-  if (!project || project.organizationId !== orgId) {
+  if (!project) {
     throw new Error("Project not found");
+  }
+
+  // Verify project belongs to the organization
+  if (project.organizationId !== orgId) {
+    return null;
   }
 
   return project;

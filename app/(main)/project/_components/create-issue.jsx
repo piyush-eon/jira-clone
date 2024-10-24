@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { BarLoader } from "react-spinners";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -17,13 +19,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import MDEditor from "@uiw/react-md-editor";
 import useFetch from "@/hooks/use-fetch";
 import { createIssue } from "@/actions/issues";
-import { getOrganizationUsers } from "@/actions/organizations"; // You'll need to create this action
-import MDEditor from "@uiw/react-md-editor";
+import { getOrganizationUsers } from "@/actions/organizations";
 import { issueSchema } from "@/app/lib/validators";
-import { useEffect } from "react";
-import { BarLoader } from "react-spinners";
 
 export default function IssueCreationDrawer({
   isOpen,
