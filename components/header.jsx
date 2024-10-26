@@ -29,7 +29,7 @@ async function Header() {
           <Link href="/project/create">
             <Button variant="destructive" className="flex items-center gap-2">
               <PenBox size={18} />
-              <span className="hidden sm:inline">Create Project</span>
+              <span className="hidden md:inline">Create Project</span>
             </Button>
           </Link>
           <SignedOut>
